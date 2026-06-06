@@ -1,0 +1,26 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.python-version
+
+# --- raw data (too large to commit; lives in ../archive) ---
+data/*.npy
+data/**/*.npy
+*.npy
+
+# --- editor / OS / Office lockfiles ---
+.DS_Store
+.idea/
+.vscode/
+~$*
+
+# --- stray probe files from environment setup ---
+.write_test
+_probe.txt
+
+# NOTE: outputs/ (figures + features.parquet) is intentionally tracked --
+# the artifacts are small and useful as deliverables.
