@@ -1,0 +1,45 @@
+{
+  "champion": {
+    "model": "svm",
+    "strategy": "none",
+    "params": {
+      "C": 2.0
+    }
+  },
+  "cv_reference": {
+    "pr_auc_mean": 0.4345,
+    "pr_auc_std": 0.0287,
+    "roc_auc_mean": 0.7267,
+    "roc_auc_std": 0.0142,
+    "mcc_at_f1max": 0.3204,
+    "recall_at_fpr1": 0.1338,
+    "precision_at_fpr1": 0.7336
+  },
+  "test_roc_auc": 0.7079,
+  "test_pr_auc": 0.4109,
+  "test_pr_baseline": 0.1664,
+  "at_f1max": {
+    "threshold": -0.8359927368987209,
+    "precision": 0.4275,
+    "recall": 0.4394,
+    "f1": 0.4334,
+    "mcc": 0.3185,
+    "fpr": 0.1174,
+    "tp": 174,
+    "fp": 233,
+    "fn": 222,
+    "tn": 1751
+  },
+  "at_fpr1pct": {
+    "threshold": -0.08017091219192307,
+    "precision": 0.6667,
+    "recall": 0.1313,
+    "f1": 0.2194,
+    "mcc": 0.2473,
+    "fpr": 0.0131,
+    "tp": 52,
+    "fp": 26,
+    "fn": 344,
+    "tn": 1958
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "model": "svm",
+  "strategy": "none",
+  "params": {
+    "C": 2.0
+  },
+  "cv": {
+    "pr_auc_mean": 0.4345,
+    "pr_auc_std": 0.0287,
+    "roc_auc_mean": 0.7267,
+    "roc_auc_std": 0.0142,
+    "mcc_at_f1max": 0.3204,
+    "recall_at_fpr1": 0.1338,
+    "precision_at_fpr1": 0.7336
+  },
+  "thresholds_frozen_from_oof": {
+    "f1_max": -0.8359927368987209,
+    "fpr_1pct": -0.08017091219192307
+  },
+  "protocol_note": "thresholds chosen on out-of-fold training scores; frozen before any test evaluation"
+}

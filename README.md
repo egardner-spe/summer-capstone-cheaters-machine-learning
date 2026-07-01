@@ -8,11 +8,12 @@ a player's aim and firing behaviour leave statistical fingerprints, and an ML
 model can be trained to tell cheaters from legitimate (including highly skilled)
 players.
 
-> **Status — Weeks 1–3 complete.** Data reality check, EDA, feature pipeline,
-> data-quality pass (dedup + label-noise removal), frozen 80/20 split with
-> persisted CV folds, finalized 34-feature set, and leakage-safe imbalance
-> handling (SMOTE / class weights) are done. Model training (RF/XGBoost/SVM)
-> starts in **Week 4** and is intentionally **not** in this codebase yet.
+> **Status — Weeks 1–4 complete.** Data pipeline, dedup + label-noise
+> removal, frozen split, finalized features, and now modelling: 15 model ×
+> imbalance-strategy configs compared out-of-fold, champion (RBF-SVM, C=2, no
+> resampling) tuned and evaluated **once** on the frozen test set — ROC-AUC
+> 0.708, PR-AUC 0.411 (chance 0.166). Error analysis (W5) and
+> interpretability/robustness (W6) are next.
 
 ## What the data is
 
@@ -26,6 +27,17 @@ cheaters.npy = (2000, 30, 192, 5)   legit.npy = (10000, 30, 192, 5)
 
 Channel meanings were verified empirically, not assumed — see
 [`reports/data_schema.md`](reports/data_schema.md).
+
+## Key Week-4 finding
+
+**SMOTE hurts.** Every nonlinear model lost PR-AUC with SMOTE (SVM 0.432 →
+0.371, RF 0.426 → 0.383, XGB 0.419 → 0.388): with subtle, humanised cheaters
+the classes genuinely overlap, and synthetic interpolation injects noise
+exactly where the decision boundary must live. No resampling won for every
+family. The champion RBF-SVM, at the strict FPR≤1% operating point, catches
+13% of cheaters at 0.667 precision — a 4× lift over the 16.6% base rate:
+useful as **review-queue triage**, nowhere near an auto-ban trigger. Write-up:
+[`reports/week4_modeling.md`](reports/week4_modeling.md).
 
 ## Key Week-3 finding
 
@@ -56,7 +68,9 @@ repo/
 │   ├── data_quality.py     #   raw-hash dedup + drop policy (W3)
 │   ├── splitting.py        #   frozen split + persisted CV folds + loaders (W3)
 │   ├── feature_selection.py#   train-only conservative prune (W3)
-│   └── imbalance.py        #   SMOTE / class-weight pipeline factory (W3)
+│   ├── imbalance.py        #   SMOTE / class-weight pipeline factory (W3)
+│   ├── modeling.py         #   model zoo + tuning grids (W4)
+│   └── evaluation.py       #   OOF scoring, op points, resumable runs (W4)
 ├── scripts/
 │   ├── 00_inspect_data.py  #   data reality check (W1)
 │   ├── 01_eda_figures.py   #   EDA figures + univariate AUC (W2)
@@ -65,16 +79,20 @@ repo/
 │   ├── 04_data_quality.py  #   raw dedup verification + keep flags (W3)
 │   ├── 05_make_split.py    #   frozen 80/20 split + persisted folds (W3)
 │   ├── 06_finalize_features.py # 39 -> 34 prune, train-only stats (W3)
-│   └── 07_check_imbalance.py   # SMOTE wiring QA + permuted control (W3)
+│   ├── 07_check_imbalance.py   # SMOTE wiring QA + permuted control (W3)
+│   ├── 08_compare_models.py    # stage 1: 15-config comparison (W4, resumable)
+│   ├── 09_tune_champion.py     # stage 2: tune top-2, freeze thresholds (W4)
+│   └── 10_final_evaluation.py  # stage 3: ONE-SHOT frozen-test eval (W4)
 ├── reports/                # data_schema, eda_findings, feature_rationale,
 │                           # literature_notes, week3_quality_split_imbalance,
 │                           # methodology (draft)
 ├── notebooks/01_eda.ipynb  # narrative EDA
 ├── outputs/
-│   ├── figures/            # EDA plots
+│   ├── figures/            # EDA plots + model comparison / ROC-PR / confusion
 │   ├── features/           # features.parquet, final_features.json, prune_log
 │   ├── quality/            # instance_table, duplicate_groups, imbalance_check
-│   └── splits/             # splits.parquet (frozen), split_summary
+│   ├── splits/             # splits.parquet (frozen), split_summary
+│   └── models/             # cv_comparison, oof/test scores, champion.* (W4)
 └── data/                   # where to place the .npy arrays (see data/README.md)
 ```
 
@@ -102,12 +120,18 @@ PYTHONPATH=src python scripts/04_data_quality.py      # raw dedup -> outputs/qua
 PYTHONPATH=src python scripts/05_make_split.py        # frozen split -> outputs/splits/
 PYTHONPATH=src python scripts/06_finalize_features.py # -> final_features.json (34)
 PYTHONPATH=src python scripts/07_check_imbalance.py   # SMOTE wiring QA + controls
+PYTHONPATH=src python scripts/08_compare_models.py    # W4 stage 1 (re-run until done)
+PYTHONPATH=src python scripts/09_tune_champion.py     # W4 stage 2 (re-run until done)
+PYTHONPATH=src python scripts/10_final_evaluation.py  # W4 stage 3: one-shot test eval
 ```
+
+Scripts 08–09 checkpoint per (config, fold) under `outputs/models/.ckpt_*`
+and resume if interrupted — repeat until they print completion.
 
 ## Roadmap (per the implementation plan)
 
 - **W3** ✅ finalise features, SMOTE + class weights, stratified split (dedup-aware).
-- **W4** RF / XGBoost / SVM baselines; precision/recall/F1, MCC, PR-AUC; ROC/PR.
+- **W4** ✅ RF / XGBoost / SVM baselines; precision/recall/F1, MCC, PR-AUC; ROC/PR.
 - **W5** subtle-vs-blatant cheater analysis; false positives among skilled legit.
 - **W6** SHAP interpretability; adversarial smoothing/jitter/delay robustness.
 - **W7–8** demo, figures, report, presentation.

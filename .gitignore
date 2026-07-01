@@ -24,3 +24,6 @@ _probe.txt
 
 # NOTE: outputs/ (figures + features.parquet) is intentionally tracked --
 # the artifacts are small and useful as deliverables.
+
+# resumable-run checkpoints (scripts 08/09)
+outputs/models/.ckpt_*/

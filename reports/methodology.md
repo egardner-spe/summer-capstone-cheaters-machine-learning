@@ -128,25 +128,43 @@ to resampling; the strategies are expected to differentiate on nonlinear
 models and threshold-dependent metrics, and if they do not, that is itself a
 reportable result.
 
-## 7. Models and evaluation (Week 4 — planned)
+## 7. Models and evaluation (Week 4)
 
-Candidates: regularised logistic regression (baseline), random forest,
-XGBoost, and SVM (RBF), each crossed with the four imbalance strategies on the
-persisted folds. Hyperparameter search on the folds only; the frozen test set
-is evaluated once, at the end, with the selected configuration.
+A two-stage, pre-registered protocol. **Stage 1** compared logistic
+regression, random forest, XGBoost, and RBF-SVM, each crossed with the four
+imbalance strategies (15 configs; `xgb+smote_cw` excluded as provably
+identical to `xgb+smote` at SMOTE parity), all scored out-of-fold on the
+persisted folds. **Stage 2** grid-tuned only the top two families, and
+selected the champion by a rule declared in advance: PR-AUC, then MCC at the
+F1-max point, then fit cost. Because the 5:1 balance flatters accuracy-like
+metrics and deployment prevalence is far lower, headline metrics are
+**PR-AUC** and **MCC**, with ROC-AUC for comparability, plus
+precision/recall/F1 at two operating points chosen on out-of-fold scores and
+frozen before test evaluation: the F1-maximising threshold (balanced
+characterisation) and a strict FPR ≤ 1% threshold (deployment-relevant, since
+anticheat economics punish false accusations far more than misses).
 
-Because the 5:1 balance flatters accuracy-like metrics and deployment
-prevalence is far lower, headline metrics are **PR-AUC** and **MCC**, with
-ROC-AUC for comparability, plus precision/recall/F1 at operating points chosen
-on validation folds — including a low-FPR operating point, since anticheat
-economics punish false accusations far more than misses.
+Results (full tables in `outputs/models/`, discussion in
+`reports/week4_modeling.md`): the anticipated strategy differentiation
+appeared — **negatively**. SMOTE reduced PR-AUC for every nonlinear model
+(e.g. SVM 0.432 → 0.371); with genuinely overlapping classes, synthetic
+interpolation adds noise precisely in the overlap region where the boundary
+must live. No resampling ("none") was the best strategy for all families.
+The champion is an **RBF-SVM (C = 2, no resampling)**: CV PR-AUC 0.4345 ±
+0.0287. The single frozen-test evaluation gave ROC-AUC 0.708 and PR-AUC 0.411
+(chance 0.166) — a ~0.02 generalisation gap. At the strict FPR≤1% point the
+model catches 13.1% of cheaters at 0.667 precision (a 4× lift over the base
+rate), supporting a review-queue triage framing rather than automated
+enforcement; the frozen threshold transferred to an actual test FPR of 1.31%,
+a quantified limitation of finite-sample threshold calibration.
 
 ## 8. Error analysis (Week 5 — planned)
 
 Subtle-vs-blatant cheater analysis (where does the model's confidence
 concentrate?), and a focused study of false positives among highly skilled
 legitimate players — the failure mode this dataset's humanised cheaters make
-most likely.
+most likely. Inputs are already persisted: out-of-fold scores for every
+config, champion OOF scores, and per-instance test scores.
 
 ## 9. Interpretability and robustness (Week 6 — planned)
 
