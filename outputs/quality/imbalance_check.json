@@ -1,0 +1,71 @@
+{
+  "n_train": 9517,
+  "n_features": 34,
+  "scale_pos_weight_for_xgb": 5.0044,
+  "fold_audit": [
+    {
+      "fold_held_out": 0,
+      "train_legit": 6345,
+      "train_cheater_real": 1268,
+      "train_cheater_after_smote": 6345,
+      "synthetic_added": 5077,
+      "synthetic_within_real_range": true
+    },
+    {
+      "fold_held_out": 1,
+      "train_legit": 6345,
+      "train_cheater_real": 1268,
+      "train_cheater_after_smote": 6345,
+      "synthetic_added": 5077,
+      "synthetic_within_real_range": true
+    },
+    {
+      "fold_held_out": 2,
+      "train_legit": 6346,
+      "train_cheater_real": 1268,
+      "train_cheater_after_smote": 6346,
+      "synthetic_added": 5078,
+      "synthetic_within_real_range": true
+    },
+    {
+      "fold_held_out": 3,
+      "train_legit": 6346,
+      "train_cheater_real": 1268,
+      "train_cheater_after_smote": 6346,
+      "synthetic_added": 5078,
+      "synthetic_within_real_range": true
+    },
+    {
+      "fold_held_out": 4,
+      "train_legit": 6346,
+      "train_cheater_real": 1268,
+      "train_cheater_after_smote": 6346,
+      "synthetic_added": 5078,
+      "synthetic_within_real_range": true
+    }
+  ],
+  "strategies": {
+    "none": {
+      "roc_auc_mean": 0.7144,
+      "roc_auc_std": 0.0134,
+      "pr_auc_mean": 0.419
+    },
+    "class_weight": {
+      "roc_auc_mean": 0.7153,
+      "roc_auc_std": 0.0131,
+      "pr_auc_mean": 0.4108
+    },
+    "smote": {
+      "roc_auc_mean": 0.7124,
+      "roc_auc_std": 0.0131,
+      "pr_auc_mean": 0.4106
+    },
+    "smote_cw": {
+      "roc_auc_mean": 0.7124,
+      "roc_auc_std": 0.0131,
+      "pr_auc_mean": 0.4106
+    }
+  },
+  "pr_baseline": 0.1665,
+  "permuted_roc_auc": 0.511
+}

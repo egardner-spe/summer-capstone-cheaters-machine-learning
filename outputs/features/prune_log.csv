@@ -1,0 +1,6 @@
+dropped,kept,abs_r,reason
+shots_per_eng,shot_rate,1.0,|r|>0.95 with shot_rate
+speed_mean,yaw_speed_mean,0.995,|r|>0.95 with yaw_speed_mean
+accel_absmean,jerk_absmean,0.9816,|r|>0.95 with jerk_absmean
+accel_absstd,jerk_absstd,0.972,|r|>0.95 with jerk_absstd
+frac_fast,speed_p90,0.9685,|r|>0.95 with speed_p90

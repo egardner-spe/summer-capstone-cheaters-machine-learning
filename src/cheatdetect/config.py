@@ -17,6 +17,8 @@ LEGIT_NPY = DATA_DIR / "legit" / "legit.npy"
 OUTPUT_DIR = REPO_ROOT / "outputs"
 FIG_DIR = OUTPUT_DIR / "figures"
 FEAT_DIR = OUTPUT_DIR / "features"
+QUALITY_DIR = OUTPUT_DIR / "quality"   # W3: dedup / data-quality artifacts
+SPLIT_DIR = OUTPUT_DIR / "splits"      # W3: persisted train/test + CV folds
 
 # --- dataset shape -----------------------------------------------------------
 N_ENGAGEMENTS = 30          # sequences per labelled instance
@@ -47,3 +49,11 @@ POST_SHOT_TICKS = 3     # ~47 ms window after a shot
 
 # --- labels ------------------------------------------------------------------
 LABELS = {0: "legit", 1: "cheater"}
+
+# --- week 3: split / data-quality / imbalance ---------------------------------
+RANDOM_SEED = 42        # single seed for split, folds, SMOTE -- reproducibility
+TEST_SIZE = 0.20        # stratified holdout, untouched until final evaluation
+N_FOLDS = 5             # CV folds fixed at split time so all W4 models share them
+CORR_THRESHOLD = 0.95   # |Pearson r| above this => redundant pair (train-only)
+NZV_THRESHOLD = 1e-10   # variance below this on train => near-constant feature
+SMOTE_K_NEIGHBORS = 5   # SMOTE kNN (default); minority per fold ~1.3k >> k
