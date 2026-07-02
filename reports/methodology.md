@@ -187,12 +187,35 @@ these results frame the system as a review-queue prioritiser whose residual
 risks — subtle-cheat evasion and elite-player false accusation — are exactly
 the two hypotheses the Week-6 robustness and interpretability analyses test.
 
-## 9. Interpretability and robustness (Week 6 — planned)
+## 9. Interpretability and robustness (Week 6)
 
-SHAP attribution to verify the model leans on the shot-centric signals the EDA
-predicts (a model that wins on artefacts is worse than a weaker honest one),
-and adversarial-style robustness probes: temporal smoothing, added jitter, and
-firing-delay perturbations that a humanised cheat could plausibly apply.
+**Interpretability** used a split-role SHAP design: exact TreeExplainer on
+the RF runner-up (equivalence with the piped version asserted) for the
+detailed story, and a checkpointed KernelExplainer sample on the RBF-SVM
+champion for cross-model rank agreement. The global ranking confirms the
+predicted mechanism — `frac_shots_locked` dominates, with directions matching
+the EDA throughout — and the signed attributions for the test false positives
+show they are flagged by exactly the aimbot signature (locked-shot fraction
+above all), establishing the false-positive problem as structural rather than
+correctable. Cross-model agreement was partial (Spearman ρ = 0.39, top-8
+overlap 3/8): both models rank `frac_shots_locked` first, but the SVM spreads
+attribution onto the smoothness/jitter family where trees concentrate on the
+shot-centric family.
+
+**Robustness** applied three humaniser-style perturbations to raw test-cheater
+telemetry (channel-consistent, padding-safe) and re-scored with the frozen
+champion at the frozen thresholds. Key result: a mild causal EMA smoothing
+(α = 0.7) collapses strict-threshold recall 13.1% → 1.5% while leaving
+shot-centric features nearly untouched — it works by stripping the
+micro-oscillation family (`zcr_dpitch` −69%), i.e. the cheat's own
+humanisation jitter that the model partly keys on. Jitter is
+counterproductive for the evader (weak jitter raises recall to 17.7%); firing
+delay is nearly useless (13.1% → 10.6%). A legit-population sanity check
+showed the strict threshold is robust for innocent players under the same
+perturbations (FPR ≤ 1.7%) but the F1-max threshold is not (FPR up to 75%),
+independently confirming it must never be an enforcement point. Limitation:
+without outcome labels, evasion cost to the cheat's effectiveness is not
+measurable; the curves are an upper bound on evasion cheapness.
 
 ## 10. Reproducibility
 

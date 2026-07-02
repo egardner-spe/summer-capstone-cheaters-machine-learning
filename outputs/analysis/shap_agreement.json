@@ -1,0 +1,25 @@
+{
+  "spearman_rho": 0.3873,
+  "spearman_p": 0.023628848621998266,
+  "top8_overlap": 3,
+  "top8_a": [
+    "frac_shots_locked",
+    "frac_shots_medspeed",
+    "settle_ratio",
+    "shot_rate",
+    "speed_at_shot_mean",
+    "speed_at_shot_std",
+    "speed_iqr",
+    "zcr_dpitch"
+  ],
+  "top8_b": [
+    "frac_shots_locked",
+    "jerk_absmean",
+    "jerk_absstd",
+    "speed_iqr",
+    "speed_median",
+    "yaw_speed_mean",
+    "zcr_dpitch",
+    "zcr_dyaw"
+  ]
+}

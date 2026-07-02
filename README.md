@@ -8,13 +8,14 @@ a player's aim and firing behaviour leave statistical fingerprints, and an ML
 model can be trained to tell cheaters from legitimate (including highly skilled)
 players.
 
-> **Status — Weeks 1–5 complete.** Data pipeline, frozen split, finalized
-> features, champion RBF-SVM evaluated once on the frozen test set (ROC-AUC
-> 0.708, PR-AUC 0.411), and now error analysis: detection rises monotonically
-> with cheater blatancy (0.8%→36% strict-threshold recall across quartiles),
-> false positives concentrate on the most mechanically skilled legit players
-> (test FPs: median skill percentile 0.95), and scores are calibrated to
-> P(cheater). Interpretability + robustness (W6) next.
+> **Status — Weeks 1–6 complete. All quantitative results are in.**
+> Champion RBF-SVM: test ROC-AUC 0.708, PR-AUC 0.411; errors follow one
+> gradient (subtle cheaters invisible, FPs = the most skilled legit players);
+> SHAP confirms the model wins for the predicted shot-centric reasons; and
+> the robustness sweep shows mild smoothing evades the deployed threshold
+> almost for free (recall 13.1% → 1.5%) by stripping the cheat's own
+> humanisation jitter. What remains is Weeks 7–8: demo, final report,
+> presentation.
 
 ## What the data is
 
@@ -28,6 +29,18 @@ cheaters.npy = (2000, 30, 192, 5)   legit.npy = (10000, 30, 192, 5)
 
 Channel meanings were verified empirically, not assumed — see
 [`reports/data_schema.md`](reports/data_schema.md).
+
+## Key Week-6 finding
+
+**Evasion is cheap, and we know the mechanism.** A barely-perceptible causal
+EMA over the mouse stream (α=0.7) collapses strict-threshold recall from
+13.1% to **1.5%** — not by hiding the aimbot's lock (shot-centric features
+barely move) but by stripping the cheat's own **humanisation jitter**
+(`zcr_dpitch` −69%), which SHAP shows the model partly keys on. The
+humaniser's countermeasure is detectable; smoothing the countermeasure
+defeats detection. Meanwhile SHAP confirms the 26 test FPs are flagged by
+exactly the aimbot signature — the skilled-legit FP problem is structural.
+Write-up: [`reports/week6_interpretability_robustness.md`](reports/week6_interpretability_robustness.md).
 
 ## Key Week-5 finding
 
@@ -86,7 +99,9 @@ repo/
 │   ├── imbalance.py        #   SMOTE / class-weight pipeline factory (W3)
 │   ├── modeling.py         #   model zoo + tuning grids (W4)
 │   ├── evaluation.py       #   OOF scoring, op points, resumable runs (W4)
-│   └── error_analysis.py   #   blatancy/skill index, profiles, calibration (W5)
+│   ├── error_analysis.py   #   blatancy/skill index, profiles, calibration (W5)
+│   ├── interpretability.py #   split-role SHAP machinery (W6)
+│   └── robustness.py       #   raw-telemetry humaniser perturbations (W6)
 ├── scripts/
 │   ├── 00_inspect_data.py  #   data reality check (W1)
 │   ├── 01_eda_figures.py   #   EDA figures + univariate AUC (W2)
@@ -100,7 +115,9 @@ repo/
 │   ├── 09_tune_champion.py     # stage 2: tune top-2, freeze thresholds (W4)
 │   ├── 10_final_evaluation.py  # stage 3: ONE-SHOT frozen-test eval (W4)
 │   ├── 11_error_analysis.py    # blatancy/skill gradients, FN-TP profile (W5)
-│   └── 12_calibrate_scores.py  # margins -> P(cheater), reliability (W5)
+│   ├── 12_calibrate_scores.py  # margins -> P(cheater), reliability (W5)
+│   ├── 13_shap_analysis.py     # split-role SHAP + agreement (W6, resumable)
+│   └── 14_robustness.py        # evasion sweep + legit sanity (W6, resumable)
 ├── reports/                # data_schema, eda_findings, feature_rationale,
 │                           # literature_notes, week3_quality_split_imbalance,
 │                           # methodology (draft)
@@ -144,6 +161,8 @@ PYTHONPATH=src python scripts/09_tune_champion.py     # W4 stage 2 (re-run until
 PYTHONPATH=src python scripts/10_final_evaluation.py  # W4 stage 3: one-shot test eval
 PYTHONPATH=src python scripts/11_error_analysis.py    # W5: error gradients + profiles
 PYTHONPATH=src python scripts/12_calibrate_scores.py  # W5: score calibration
+PYTHONPATH=src python scripts/13_shap_analysis.py     # W6: SHAP (re-run until done)
+PYTHONPATH=src python scripts/14_robustness.py        # W6: evasion sweep (re-run until done)
 ```
 
 Scripts 08–09 checkpoint per (config, fold) under `outputs/models/.ckpt_*`
@@ -154,5 +173,5 @@ and resume if interrupted — repeat until they print completion.
 - **W3** ✅ finalise features, SMOTE + class weights, stratified split (dedup-aware).
 - **W4** ✅ RF / XGBoost / SVM baselines; precision/recall/F1, MCC, PR-AUC; ROC/PR.
 - **W5** ✅ subtle-vs-blatant cheater analysis; false positives among skilled legit.
-- **W6** SHAP interpretability; adversarial smoothing/jitter/delay robustness.
+- **W6** ✅ SHAP interpretability; adversarial smoothing/jitter/delay robustness.
 - **W7–8** demo, figures, report, presentation.
