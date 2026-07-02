@@ -1,0 +1,14 @@
+{
+  "test_recall_by_blatancy_quartile_at_fpr1pct": {
+    "Q1 subtle": 0.0227,
+    "Q2": 0.0574,
+    "Q3": 0.1059,
+    "Q4 blatant": 0.3366
+  },
+  "n_test_fps_at_fpr1pct": 26,
+  "test_fp_skill_percentiles": {
+    "median": 0.9458,
+    "frac_above_p80": 0.8846,
+    "frac_above_p90": 0.7308
+  }
+}

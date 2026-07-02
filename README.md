@@ -8,12 +8,13 @@ a player's aim and firing behaviour leave statistical fingerprints, and an ML
 model can be trained to tell cheaters from legitimate (including highly skilled)
 players.
 
-> **Status — Weeks 1–4 complete.** Data pipeline, dedup + label-noise
-> removal, frozen split, finalized features, and now modelling: 15 model ×
-> imbalance-strategy configs compared out-of-fold, champion (RBF-SVM, C=2, no
-> resampling) tuned and evaluated **once** on the frozen test set — ROC-AUC
-> 0.708, PR-AUC 0.411 (chance 0.166). Error analysis (W5) and
-> interpretability/robustness (W6) are next.
+> **Status — Weeks 1–5 complete.** Data pipeline, frozen split, finalized
+> features, champion RBF-SVM evaluated once on the frozen test set (ROC-AUC
+> 0.708, PR-AUC 0.411), and now error analysis: detection rises monotonically
+> with cheater blatancy (0.8%→36% strict-threshold recall across quartiles),
+> false positives concentrate on the most mechanically skilled legit players
+> (test FPs: median skill percentile 0.95), and scores are calibrated to
+> P(cheater). Interpretability + robustness (W6) next.
 
 ## What the data is
 
@@ -27,6 +28,20 @@ cheaters.npy = (2000, 30, 192, 5)   legit.npy = (10000, 30, 192, 5)
 
 Channel meanings were verified empirically, not assumed — see
 [`reports/data_schema.md`](reports/data_schema.md).
+
+## Key Week-5 finding
+
+**The detector's errors are two mirror images of one gradient.** Recall is a
+monotone function of a cheater's mechanical extremity (strict threshold:
+0.8% on the subtlest quartile → 36% on the most blatant — subtle cheats are
+effectively invisible), while false positives concentrate on legit players
+whose mechanics most resemble an aimbot's: the top skill decile carries 60%
+of strict-threshold FPs, and the 26 real test FPs sit at a median skill
+percentile of **0.95**. Missed cheaters are statistically legit on every
+axis (settle ratio 0.997 vs legit 1.015). Threshold-banning would punish the
+best players; the system is a review-queue prioritiser, now with calibrated
+P(cheater) outputs. Write-up:
+[`reports/week5_error_analysis.md`](reports/week5_error_analysis.md).
 
 ## Key Week-4 finding
 
@@ -70,7 +85,8 @@ repo/
 │   ├── feature_selection.py#   train-only conservative prune (W3)
 │   ├── imbalance.py        #   SMOTE / class-weight pipeline factory (W3)
 │   ├── modeling.py         #   model zoo + tuning grids (W4)
-│   └── evaluation.py       #   OOF scoring, op points, resumable runs (W4)
+│   ├── evaluation.py       #   OOF scoring, op points, resumable runs (W4)
+│   └── error_analysis.py   #   blatancy/skill index, profiles, calibration (W5)
 ├── scripts/
 │   ├── 00_inspect_data.py  #   data reality check (W1)
 │   ├── 01_eda_figures.py   #   EDA figures + univariate AUC (W2)
@@ -82,7 +98,9 @@ repo/
 │   ├── 07_check_imbalance.py   # SMOTE wiring QA + permuted control (W3)
 │   ├── 08_compare_models.py    # stage 1: 15-config comparison (W4, resumable)
 │   ├── 09_tune_champion.py     # stage 2: tune top-2, freeze thresholds (W4)
-│   └── 10_final_evaluation.py  # stage 3: ONE-SHOT frozen-test eval (W4)
+│   ├── 10_final_evaluation.py  # stage 3: ONE-SHOT frozen-test eval (W4)
+│   ├── 11_error_analysis.py    # blatancy/skill gradients, FN-TP profile (W5)
+│   └── 12_calibrate_scores.py  # margins -> P(cheater), reliability (W5)
 ├── reports/                # data_schema, eda_findings, feature_rationale,
 │                           # literature_notes, week3_quality_split_imbalance,
 │                           # methodology (draft)
@@ -92,7 +110,8 @@ repo/
 │   ├── features/           # features.parquet, final_features.json, prune_log
 │   ├── quality/            # instance_table, duplicate_groups, imbalance_check
 │   ├── splits/             # splits.parquet (frozen), split_summary
-│   └── models/             # cv_comparison, oof/test scores, champion.* (W4)
+│   ├── models/             # cv_comparison, oof/test scores, champion.* (W4)
+│   └── analysis/           # error-analysis tables, index, calibration (W5)
 └── data/                   # where to place the .npy arrays (see data/README.md)
 ```
 
@@ -123,6 +142,8 @@ PYTHONPATH=src python scripts/07_check_imbalance.py   # SMOTE wiring QA + contro
 PYTHONPATH=src python scripts/08_compare_models.py    # W4 stage 1 (re-run until done)
 PYTHONPATH=src python scripts/09_tune_champion.py     # W4 stage 2 (re-run until done)
 PYTHONPATH=src python scripts/10_final_evaluation.py  # W4 stage 3: one-shot test eval
+PYTHONPATH=src python scripts/11_error_analysis.py    # W5: error gradients + profiles
+PYTHONPATH=src python scripts/12_calibrate_scores.py  # W5: score calibration
 ```
 
 Scripts 08–09 checkpoint per (config, fold) under `outputs/models/.ckpt_*`
@@ -132,6 +153,6 @@ and resume if interrupted — repeat until they print completion.
 
 - **W3** ✅ finalise features, SMOTE + class weights, stratified split (dedup-aware).
 - **W4** ✅ RF / XGBoost / SVM baselines; precision/recall/F1, MCC, PR-AUC; ROC/PR.
-- **W5** subtle-vs-blatant cheater analysis; false positives among skilled legit.
+- **W5** ✅ subtle-vs-blatant cheater analysis; false positives among skilled legit.
 - **W6** SHAP interpretability; adversarial smoothing/jitter/delay robustness.
 - **W7–8** demo, figures, report, presentation.

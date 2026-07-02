@@ -158,13 +158,34 @@ rate), supporting a review-queue triage framing rather than automated
 enforcement; the frozen threshold transferred to an actual test FPR of 1.31%,
 a quantified limitation of finite-sample threshold calibration.
 
-## 8. Error analysis (Week 5 — planned)
+## 8. Error analysis (Week 5)
 
-Subtle-vs-blatant cheater analysis (where does the model's confidence
-concentrate?), and a focused study of false positives among highly skilled
-legitimate players — the failure mode this dataset's humanised cheaters make
-most likely. Inputs are already persisted: out-of-fold scores for every
-config, champion OOF scores, and per-instance test scores.
+Both planned analyses were operationalised through a single
+**mechanical-extremity index**: the mean percentile rank, against the legit
+*training* distribution only, on the eight shot-centric discriminators from
+the EDA, taken in the cheater-ward direction (blatancy when read on cheaters,
+mechanical skill when read on legit players). All analysis ran on the
+champion's out-of-fold training predictions at the frozen thresholds; the
+spent test set was consulted only descriptively.
+
+Findings (details in `reports/week5_error_analysis.md`): detection is a
+strong monotone function of blatancy (strict-threshold recall 0.8% → 36.3%
+from the subtlest to the most blatant cheater quartile), meaning cheats that
+keep their mechanical footprint inside the subtle quartile are effectively
+invisible to the method at a deployable false-positive rate. Conversely,
+false positives concentrate overwhelmingly on the most mechanically skilled
+legitimate players — the top skill decile carries 60% of strict-threshold
+false positives (44× the FPR of low-skill deciles), and the 26 test-set false
+positives have a median skill percentile of 0.95. Missed cheaters are
+feature-by-feature closer to the legit population than to caught cheaters
+(e.g. settle ratio 0.997 vs legit 1.015 vs caught 0.817): the false negatives
+reflect genuine distributional overlap, not correctable model error. Champion
+margins were additionally calibrated to probabilities (isotonic, fold-honest
+Brier 0.119 vs 0.139 baseline; test Brier 0.120), so triage outputs can be
+stated as P(cheater); the strict threshold corresponds to P ≈ 0.59. Together
+these results frame the system as a review-queue prioritiser whose residual
+risks — subtle-cheat evasion and elite-player false accusation — are exactly
+the two hypotheses the Week-6 robustness and interpretability analyses test.
 
 ## 9. Interpretability and robustness (Week 6 — planned)
 

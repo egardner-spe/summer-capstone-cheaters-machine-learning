@@ -1,0 +1,11 @@
+{
+  "cv_brier": {
+    "platt": 0.1194,
+    "isotonic": 0.1193
+  },
+  "brier_baseline_predict_base_rate": 0.1388,
+  "winner": "isotonic",
+  "test_brier_descriptive": 0.1201,
+  "P_at_f1max_threshold": 0.2391,
+  "P_at_fpr1pct_threshold": 0.5938
+}
